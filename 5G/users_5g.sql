@@ -1,4 +1,4 @@
--- 5g user;
+-- 5g user; [5g]
 proc sql;
 create table user as
 select distinct phone_no,user_id,imei
