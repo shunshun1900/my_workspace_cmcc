@@ -7,3 +7,4 @@
 ## 5g
 ## gprs
 ## call
+## 5g model
