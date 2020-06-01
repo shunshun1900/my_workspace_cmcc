@@ -19,3 +19,7 @@ keep user_id phone_no;
 run;
 
 proc sort data=plan nodupkey ;by user_id phone_no  ;run;
+
+proc contents data=dw61.ST_MKT_TERM_G5_DTL_20200526;run;
+proc contents data=dw61.ST_INDEX_USER_5G_FLOW_DM;run;
+proc contents data=dw61.st_mkt_ord_5g_usr_dtl_20200526;run;
