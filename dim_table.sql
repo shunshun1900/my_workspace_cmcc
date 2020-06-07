@@ -12,6 +12,7 @@ from xz_out1 a
 left join dw61.ST_MKT_YWWG_SDH_20191121 b on a.user_id=b.user_id;
 quit;
 
+-- area_name name using org_id
 proc sql;
 create table xz_in1 as
 select a.*,
@@ -22,6 +23,8 @@ from xz_in a
 left join shiyang.DIM_PRTY_ORG_INFO b on a.org_id=b.org_id;
 quit;
 
+
+-- area_name sum statistics
 proc sql;
 create table tmp as
 select a.*,b.dept_name,b.log_vs from 
