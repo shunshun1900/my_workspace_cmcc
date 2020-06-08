@@ -1,3 +1,20 @@
+-- dummy code 
+  --order offer_id state type
+    -- 00 -> 0
+	-- 01 -> 1
+	-- 10 -> 2
+	-- 11 -> 3
+
+  -- 5G plan user type
+    -- 000 -> 0 
+	-- 001 -> 1
+	-- 010 -> 2
+
+  -- 5G offer_id type 
+    -- 1 -> main_offer
+	-- 2 -> diejia_offer
+	-- 3 -> quanyi_offer
+
 -- msc ID
 data hdpyp02.dim_msc_id;
 set dim_msc_id;
@@ -12,6 +29,7 @@ from xz_out1 a
 left join dw61.ST_MKT_YWWG_SDH_20191121 b on a.user_id=b.user_id;
 quit;
 
+-- area_name name using org_id
 proc sql;
 create table xz_in1 as
 select a.*,
@@ -22,6 +40,8 @@ from xz_in a
 left join shiyang.DIM_PRTY_ORG_INFO b on a.org_id=b.org_id;
 quit;
 
+
+-- area_name sum statistics
 proc sql;
 create table tmp as
 select a.*,b.dept_name,b.log_vs from 

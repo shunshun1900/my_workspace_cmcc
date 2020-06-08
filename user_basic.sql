@@ -28,8 +28,12 @@ select * from share_yy.kb_&month
 where is_dykz=1 and m2m_flag^=1 and data_crd_flag^=1;
 quit;
 
+-- pay user day
+
 -- comm user month
 create table user_comm_20200131 as 
 select distinct user_id 
 from dw61.ST_MKT_YWWG_COMM_CM_M_20200131
 where user_id is not null;
+
+-- comm user day
