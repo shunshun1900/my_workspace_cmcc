@@ -38,3 +38,6 @@ from user_comm_20200131  a
 left join share_yy.kb_&month kb on a.user_id=kb.user_id;
 
 -- left join scripts
+%MACRO ;
+
+%MEDN:

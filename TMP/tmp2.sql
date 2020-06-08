@@ -163,4 +163,62 @@ quit ;
 %mend;
 %kb();
 
+-- 02jun2020
+data kb1;
+set  shiyang.checkpoint_0529_1;
+if days_local=. then days_local=0;
+if local_bill_dur=. then local_bill_dur=0;
+if local_flow=. then local_flow=0;
+if dou=. then dou=0;
+if bill_dur=. then bill_dur=0;
+if lac_cnt=. then lac_cnt=0;
+bill_flag=gprs_flag+call_flag;
+if bill_flag >=1 then bill_flag=1;
+local_flag=days_local+local_bill_dur+local_flow;
+if local_flag >=1 then local_flag=1;
+else local_flag=0;
+dou=dou/1024/1024;
+inner_roam_flow=inner_roam_flow/1024/1024;
+local_flow=local_flow/1024/1024;
+run;
+
+proc sql;
+create table t1 as
+select a.*, b.OA_FLAG
+from
+kb1 A left join
+share_yy.kb_202004 B on a.user_id=b.user_id;
+quit;
+
+data t2;
+set t1;
+if net_flag = 0 and local_flag=1 and OA_FLAG = 1;
+run;
+
+data xyrj;
+set xyrj xyrj2 xyrj_result;
+run;
+
+proc sort data = xyrj nodupkey; by phone_no; run;
+
+proc sql;
+create table t2 AS
+select a.*, b.name, b.email, b.f6, b.f7
+from t2 A left join xyrj B on a.phone_no=b.phone_no;
+quit;
+
+proc sql;
+create table shiyang.t3 AS 
+select a.*,b.pp, b.xh, b.xh_sale
+from t2 A left join share_yy.imei_5g_202004 B
+on substr(a.last_imei,1,8)=b.imei8;
+quit;
+
+proc sql;
+create table shiyang.dim_5g_plan as 
+select a.*, b.prod_item_name, b.prod_item_type
+from dim_5g_plan A 
+left join dw61.dim_svc_prod_item b on a.prod_item_id = b.prod_item_id;
+quit;
+
 
