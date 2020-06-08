@@ -12,8 +12,6 @@ user_id
 */
 
 
-
-
 /*  call roam in   */
 /*
 DWD_EVT_CALL_RIN_USR_YYYYMMDD

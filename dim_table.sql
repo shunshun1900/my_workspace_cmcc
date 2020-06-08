@@ -1,17 +1,16 @@
 -- dummy code 
-  --order offer_id state type
+  --order offer_id state_type
     -- 00 -> 0
 	-- 01 -> 1
 	-- 10 -> 2
 	-- 11 -> 3
 
-  -- 5G plan user type
+  -- 5G plan user type : plan_type
     -- 000 -> 0 
 	-- 001 -> 1
 	-- 010 -> 2
-	-- ....
 
-  -- 5G offer_id type 
+  -- 5G offer_id type : offer_type
     -- 1 -> main_offer
 	-- 2 -> diejia_offer
 	-- 3 -> quanyi_offer

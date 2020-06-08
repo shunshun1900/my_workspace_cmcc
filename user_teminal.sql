@@ -1,5 +1,4 @@
 
-
 /* teminal device using  */
 /*
 note: user_id means user_id or phone_no where phone_no CONTAINS other province number
