@@ -9,7 +9,7 @@ quit;
 
 -- personal user day
 proc sql;
-create table tmp_user_info_&pre_dt as
+create table shiyang.user_info as
 select 
 phone_no,
 user_id,
@@ -49,3 +49,4 @@ from dw61.ST_MKT_YWWG_COMM_CM_M_20200131
 where user_id is not null;
 
 -- comm user day
+#ST_MKT_YWWG_COMM_CM_D_YYYYMMDD

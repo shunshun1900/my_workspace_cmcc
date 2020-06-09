@@ -5,7 +5,7 @@
 -- zixuan main offer
 
 
--- uvar offer 
+-- urvas offer 
 
 
--- var offer
+-- vas offer
