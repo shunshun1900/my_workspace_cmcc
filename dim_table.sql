@@ -20,6 +20,12 @@ data hdpyp02.dim_msc_id;
 set dim_msc_id;
 run;
 
+-- quhao  vplmn1
+/*dim_qudao*/
+id
+city 
+province 
+
 -- area name
 proc sql;
 create table xz_out2 as
@@ -51,3 +57,19 @@ on a.area_name=b.dept_name
 order by a.area_id;
 quit; 
 
+/*  plan_fee  */
+#DIM_SVC_OFF_FEE
+offer_id
+offer_name
+EXTEND_ID
+
+/* marketing activities */
+#DIM_SVC_OFF_PLOY
+offer_id
+offer_name
+
+/* svc prod  */
+#dim_svc_prod_item
+
+/* DIM_SVC_OFF_MAIN */
+#DIM_SVC_OFF_MAIN

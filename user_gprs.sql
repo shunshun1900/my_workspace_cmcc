@@ -43,3 +43,16 @@ cellID
 */
 
 /* gprs_miss_flow history data in Hadoop  */
+| user_id                  | varchar(20)           |                       |
+| sum_flow                 | double                |                       |
+| sum_flow_4g              | double                |                       |
+| local_flow               | double                |                       |
+| local_flow_4g            | double                |                       |
+| dou                      | double                |                       |
+| dou_4g                   | double                |                       |
+| stat_date                | date                  |                       |
+|                          | NULL                  | NULL                  |
+| # Partition Information  | NULL                  | NULL                  |
+| # col_name               | data_type             | comment               |
+|                          | NULL                  | NULL                  |
+| stat_date                | date                  |                       |
