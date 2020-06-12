@@ -8,6 +8,10 @@ shiyang.g5_group_plan_user_detail
 shiyang.user_5g_yy
 shiyang.dm_imei_&pre_month
 hdpyp02.tmp_days_local
+share_yy.gprs_fee_202005
+	--user_id gprs_fee
+share_yy.main_fee_zixuan
+	--user_id plan_fee
 
 # output table
 
@@ -15,6 +19,9 @@ shiyang.kb_sent
 shiyang.kb_yy
 shiyang.kb_plan_market
 shiyang.kb_plan_up 
+shiyang.call
+shiyang.gprs
+
 
 */
 /*    机网匹配    */
@@ -147,4 +154,186 @@ quit;
 
 proc sort data=shiyang.kb_plan_up nodupkey;by user_id;run;
 
+
+/*    KB: put all together, based on 5G user */
+
+*initial;
+proc sql;
+create table shiyang.g5_kb as 
+select distinct a.user_id, a.phone_no, a.imei
+from shiyang.g5_user A;
+quit;
+
+*join net user ;
+proc sql;
+create table shiyang.g5_kb as 
+select a.*,
+case when b.user_id is null then 0 else 1 end as net_flag
+from shiyang.g5_kb A
+left join shiyang.g5_net_user B on a.user_id=b.user_id;
+quit;
+
+*join plan user;
+proc sql;
+create table shiyang.g5_kb as 
+select a.*,
+case when b.user_id is null then 0 else 1 end as plan_flag
+from shiyang.g5_kb A
+left join shiyang.g5_plan_user B on a.user_id=b.user_id;
+quit;
+
+*join main plan info. detail ;
+proc sql;
+create table shiyang.g5_kb as 
+select a.*,
+b.plan_fee as gprs_plan_fee,
+case when b.user_id is null then 0 else 1 end as zixuan_flag
+from shiyang.g5_kb A
+left join
+(select * from share_yy.main_fee_zixuan where offer_name like "%流量%") B
+on a.user_id=b.user_id;
+quit;
+
+proc sql;
+create table shiyang.g5_kb as 
+select a.*,
+b.plan_name_next as plan_name,
+b.plan_fee_next as plan_fee
+from shiyang.g5_kb A
+left join share_yy.MAIN_OFFER_FEE_NEXT B on a.user_id=b.user_id;
+quit;
+
+*join diejia quanyi info.; 
+proc sql;
+create table shiyang.g5_kb as 
+select a.*,
+case when b.user_id is null then 0 else 1 end as diejia_flag
+from shiyang.g5_kb A
+left join
+(select distinct user_id from shiyang.g5_group_plan_user_detail where offer_type=2)
+ B on a.user_id=b.user_id;
+quit;
+
+proc sql;
+create table shiyang.g5_kb as 
+select a.*,
+case when b.user_id is null then 0 else 1 end as quanyi_flag
+from shiyang.g5_kb A
+left join
+(select distinct user_id from shiyang.g5_group_plan_user_detail where offer_type=3)
+ B on a.user_id=b.user_id;
+quit;
+
+*join location stay;
+proc sql;
+create table shiyang.g5_kb as 
+select a.*,
+b.days_cnt,
+b.dur,
+b.lac_cnt
+from shiyang.g5_kb A
+left join shiyang.days_local B on a.phone_no=b.msisdn;
+quit;
+
+*join gprs in cur_month;
+proc sql;
+create table shiyang.g5_kb as 
+select a.*,
+b.gprs_miss_flow as cur_dou,
+b.inner_roam_flow, 
+b.inner_roam_onnet_days,
+b.local_onnet_days ,
+b.lively_days as gprs_lively_days,
+b.local_flow,
+case when b.user_id is null then 0 else 1 end as gprs_flag
+from shiyang.g5_kb A
+left join shiyang.gprs B on a.user_id=b.user_id;
+quit;
+
+*join gprs in recent 30 days;
+proc sql;
+create table shiyang.g5_kb as 
+select a.*,
+b.dou as dou_30,
+b.sum_flow as sum_flow_30
+from shiyang.g5_kb A
+left join shiyang.tmp_flow_&end_dt B on a.user_id=b.user_id;
+quit;
+
+*join call in cur_month;
+proc sql;
+create table shiyang.g5_kb as 
+select a.*,
+e.bill_dur as cur_bill_dur,
+e.local_bill_dur, 
+e.inner_roam_bill_dur, 
+e.lively_days as call_lively_days,
+case when e.user_id is null then 0 else 1 end as call_flag
+from shiyang.g5_kb A
+left join shiyang.call E on a.user_id=e.user_id;
+quit;
+
+*join dm info;
+proc sql;
+create table shiyang.g5_kb as 
+select a.*,
+b.double_flag,
+b.dm_flag,
+b.main_carrier,
+b.sec_carrier
+from shiyang.g5_kb A
+left join shiyang.dm_imei_&pre_month B on a.imei=b.imei;
+quit;
+
+proc sql;
+create table shiyang.g5_kb as 
+select a.*,
+b.main_flag
+from shiyang.g5_kb A
+left join shiyang.dm_imei_&pre_month B on a.imei=b.imei;
+quit;
+
+*join gprs fee;
+proc sql;
+create table shiyang.g5_kb as 
+select a.*,
+b.gprs_fee
+from shiyang.g5_kb A
+left join share_yy.gprs_fee_&pre_month B on a.user_id=b.user_id;
+quit;
+
+*modify kb for final reports;
+proc sort data=shiyang.g5_kb nodupkey; by user_id;run;
+
+data shiyang.g5_kb;
+set shiyang.g5_kb;
+*modify location stay var.;
+days_local=days_cnt;
+if days_local=. then days_local=0;
+if lac_cnt=. then lac_cnt=0;
+*modify gprs var;
+if local_bill_dur=. then local_bill_dur=0;
+if local_flow=. then local_flow=0;
+inner_roam_flow=inner_roam_flow/1024/1024;
+local_flow=local_flow/1024/1024;
+if dou_30=. then dou_30=0;
+if cur_dou=. then cur_dou=0;
+cur_dou=cur_dou/1024/1024;
+*modify call var;
+if cur_bill_dur=. then cur_bill_dur=0;
+**add statistics flag;
+*bill_flag;
+bill_flag=gprs_flag+call_flag;
+if bill_flag >=1 then bill_flag=1;
+*local stay flag;
+local_flag=days_local+local_bill_dur+local_flow;
+if local_flag >=1 then local_flag=1;
+else local_flag=0;
+*5g plan flag;
+group_plan_flag=0;
+if  plan_flag=1 or diejia_flag=1 or quanyi_flag=1 then group_plan_flag=1;
+*user value flag;
+valuable_flag=0;
+if gprs_plan_fee >= 100 or (plan_fee>=130 and zixuan_flag=0) then valuable_flag=1;
+run;
 

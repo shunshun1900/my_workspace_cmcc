@@ -222,3 +222,29 @@ left join dw61.dim_svc_prod_item b on a.prod_item_id = b.prod_item_id;
 quit;
 
 
+
+-- 12jun2020
+proc sql;
+create table kb2 as 
+select a.*,
+b.after_yh_tcbase_fee as pre_tcbase_fee
+from kb1 A
+left join share_yy.tc_fee_fin_202004 B on a.user_id=b.user_id;
+quit;
+
+proc sql;
+create table kb2 as 
+select a.*,
+b.after_yh_tcbase_fee as cur_tcbase_fee
+from kb2 A
+left join share_yy.tc_fee_fin_202005 B on a.user_id=b.user_id;
+quit;
+
+
+data kb3;
+set kb2;
+if missing(pre_tcbase_fee)=0 and missing(cur_tcbase_fee)=0;
+if cur_tcbase_fee > pre_tcbase_fee then sd_flag = 1;
+else if cur_tcbase_fee = pre_tcbase_fee then sd_flag = 2;
+else if cur_tcbase_fee < pre_tcbase_fee then sd_flag = 3;
+run;
