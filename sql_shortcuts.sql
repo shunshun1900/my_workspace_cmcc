@@ -38,6 +38,19 @@ from user_comm_20200131  a
 left join share_yy.kb_&month kb on a.user_id=kb.user_id;
 
 -- left join scripts
-%MACRO ;
+proc sql;
+create table shiyang.g5_kb as 
+select a.*,
+b.double_flag
+from shiyang.g5_kb A
+left join shiyang.dm_imei_&pre_month B on a.user_id=b.user_id;
+quit;
 
-%MEDN:
+proc sql;
+create table shiyang.g5_kb as 
+select a.*,
+b.bill_dur as cur_bill_dur,
+case when b.user_id is null then 0 else 1 end as call_flag
+from shiyang.g5_kb A
+left join shiyang.call B on a.user_id=b.user_id;
+quit;

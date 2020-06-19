@@ -248,3 +248,102 @@ if cur_tcbase_fee > pre_tcbase_fee then sd_flag = 1;
 else if cur_tcbase_fee = pre_tcbase_fee then sd_flag = 2;
 else if cur_tcbase_fee < pre_tcbase_fee then sd_flag = 3;
 run;
+
+
+%macro aaa();
+%do i=201911 %to 201912;
+proc sql;
+create table user_tmbd_&i as
+select distinct a.user_id,state,a.offer_id,prod_id,create_date,eff_date,exp_date,org_id,op_id 
+from dw61.dwd_svc_off_TEM_BIDINS_&i a,lhy.xinyong_gouji_id as b 
+where a.offer_id=b.offer_id ;
+quit;
+%end;
+%mend;
+
+proc sql;
+create table user_tmbd as
+select distinct user_id,state,offer_id,prod_id,create_date,eff_date,exp_date,org_id,op_id 
+from dw61.dwd_svc_off_TEM_BIDINS_202005 
+where offer_id=111000738054;
+quit;
+
+
+data shiyang.kb2;
+set kb2;
+run;
+
+data kb2;
+set shiyang.kb2;
+if missing(pre_tcbase_fee)=0 and missing(cur_tcbase_fee)=0;
+if (cur_tcbase_fee - pre_tcbase_fee)>0 then sd_flag = 1;
+ if cur_tcbase_fee = pre_tcbase_fee then sd_flag = 2;
+ if cur_tcbase_fee < pre_tcbase_fee then sd_flag = 3;
+run;
+
+proc sql;
+create table kb4 as 
+select a.*,
+case when b.user_id is null then 0 else 1 end as tmbd_flag
+from kb2 A
+left join user_tmbd B on a.user_id=b.user_id;
+quit;
+
+-- 16jun2020
+proc sql;
+create table shiyang.wms as
+select a.*
+b.complain_desc,
+b.lvl3desc,
+b.lvl4desc,
+b.lvl5desc,
+b.lvl6desc,
+b.lvl7desc
+from dw61.dwd_evt_wms_wf_ins_his_dm_2020 a
+left join shiyang.dim_evt_wms_complain_type b
+on a.complain_type=b.complain_type
+where a.op_date>='01may2020'd  and  a.op_date<='31may2020'd
+and b.lvl2desc like "%网络质量%"
+and (b.lvl3desc like "手机上网%5G通信%")
+;
+quit;
+
+proc sort data=shiyang.wms nodupkey; by phone_No; run;
+
+proc sql;
+create table g5_net_user as
+select sub_id as user_id, count(distinct substr(stat_date,1,10)) as cnt, sum(gprs_5g_flow) as g5_flow from dw61.ST_INDEX_USER_5G_FLOW_DM 
+where substr(stat_date,1,10)>="2020-05-01" and substr(stat_date,1,10)<="2020-05-31" group by sub_id; 
+quit;
+
+proc sql;
+create table shiyang.wms as 
+select a.*,
+b.user_id
+from shiyang.wms A
+left join share_yy.kb_202005 B on a.phone_no=b.phone_no;
+quit;
+
+proc sql;
+create table shiyang.wms as 
+select a.*,
+b.cnt,
+b.g5_flow/1024/1024 as g5_flow
+from shiyang.wms A
+left join g5_net_user B on a.user_id=b.user_id;
+quit;
+
+
+-- 17jun2020
+
+proc sql;
+select * from share_yy.main_offer_fee_next WHERE user_id=''
+quit;
+
+proc sql;
+select  user_id,phone_no,202005 as dt from share_yy.kb_202005 WHERE user_id=''
+union
+
+union
+
+quit;

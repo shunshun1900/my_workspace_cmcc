@@ -70,6 +70,36 @@ quit;
 proc sort data = shiyang.g5_group_plan_user_detail nodupkey; by user_id offer_id; run;
 
 /*
+
+China Mobile pro
+*/
+proc sql;
+create table pro  as
+select b.*,
+a.offer_name
+from
+shiyang.dim_5g_plan A
+inner join
+fengtao.yewu_bl_all_dm_20200615 B
+on a.offer_id=b.offer_id
+where a.offer_name like "移动PRO%" or a.offer_name like "移动pro%"
+;
+quit;
+
+
+/*
+M-zone pro
+
+*/
+
+proc sql;
+create table m_zone as 
+select * from fengtao.yewu_bl_all_dm_20200615
+where offer_id in (111000735281,111000735285,111000735289)
+;
+quit;
+
+/*
 data shiyang.g5_group_plan_user_detail;
 set shiyang.g5_group_plan_user_detai;
 if eff_date ^= exp_date;

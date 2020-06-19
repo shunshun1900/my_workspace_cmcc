@@ -20,3 +20,15 @@ table_b=fengtao.dim_5g_plan,
 key_a=offer_id, 
 key_b=offer_id);
 run;
+
+/* sort */
+proc sort data=table_a nodupkey; by user_id; run;
+
+PROC contents DATA = orders; RUN;
+
+PROC FREQ data=;
+    tables /nocol nocum norow;
+RUN;
+
+PROC PRINT data=;
+RUN;
