@@ -280,14 +280,7 @@ select a.*,
 b.double_flag,
 b.dm_flag,
 b.main_carrier,
-b.sec_carrier
-from shiyang.g5_kb A
-left join shiyang.dm_imei_&pre_month B on a.imei=b.imei;
-quit;
-
-proc sql;
-create table shiyang.g5_kb as 
-select a.*,
+b.sec_carrier,
 b.main_flag
 from shiyang.g5_kb A
 left join shiyang.dm_imei_&pre_month B on a.imei=b.imei;
@@ -300,6 +293,20 @@ select a.*,
 b.gprs_fee
 from shiyang.g5_kb A
 left join share_yy.gprs_fee_&pre_month B on a.user_id=b.user_id;
+quit;
+
+*join share_yy.kb;
+proc sql;
+create table shiyang.g5_kb as 
+select a.*,
+    kb.BFR_ALCT_TOTAL_FEE as arpu,
+    kb.gprs_miss_flow as dou,
+    kb.bill_dur as mou,
+    kb.user_state_id,
+     kb.join_date,
+    kb.online_id
+from shiyang.g5_kb A 
+left join share_yy.kb_&pre_month kb on A.user_id = kb.user_id;
 quit;
 
 *modify kb for final reports;
