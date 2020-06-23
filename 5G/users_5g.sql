@@ -110,8 +110,6 @@ run;
 
 */
 
-
-
 -- g5_group_plan_user
   -- user_id phone_no  plan_offer_id plan_offer_id_next main_state_type
   -- diejia_offer_id diejia_offer_id_next diejia_state_type
