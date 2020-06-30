@@ -39,3 +39,12 @@ lvl3desc like "%5G%"
 or complain_desc like "%5G%"
 ;
 quit;
+
+/*  user click the url */
+select distinct WT_MOBILE 
+from #ODS_UMI_SH_H5_ALL_channel_day_20200629
+Where WT_MC_ID = 'YX200616_DXQF_5GZQ_02' and WT_MOBILE != '\N'
+
+select distinct WT_MOBILE 
+from #ODS_UMI_SH_H5_ALL_channel_day_20200629
+Where WT_MC_ID = '2YB7VVj' and WT_MOBILE != '\N'

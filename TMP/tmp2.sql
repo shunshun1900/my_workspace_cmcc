@@ -347,3 +347,61 @@ union
 union
 
 quit;
+
+proc sql;
+create table out as 
+select a.*,
+case when b.user_id is null then 0 else 1 end as plan_flag
+from shiyang.g5_user A
+left join (select distinct user_id  from tmp where offer_type in (1,2)) B 
+on a.user_id=b.user_id
+;
+quit;
+
+proc freq data = out;
+table plan_flag
+;
+run;
+
+proc sql;
+select distinct WT_MOBILE 
+from dw61.ODS_UMI_SH_H5_ALL_channel_day_20200629
+Where WT_MC_ID = 'YX200616_DXQF_5GZQ_02' and WT_MOBILE ！= '\N'
+quit;
+
+proc contents data = dw61.ODS_UMI_SH_H5_ALL_channel_day_20200629;
+run;
+
+
+select count(distinct a.user_id)
+from #st_mkt_term_g5_dtl_20200629 as A
+inner join
+(
+select distinct sub_id from #b_02027_f_20200629
+where BASS1_ID in 
+(
+999914211780128001,
+999914211780158001,
+999914211780198001,
+999914211780238001,
+999914211780298001,
+999914211780398001,
+999914211780598001,
+999927111780169001,
+999927111780269001,
+999927111780369001,
+999927111780569001,
+999927111780869001,
+999912111800070001,
+999912111800150001,
+999912111800300001,
+999912121810030001,
+999912121810030002,
+999912121810020001,
+999912121810020002,
+999912121810120001,
+999912121810060001
+)
+and EXPIRE_DATE>20200701) as B
+on a.user_id=b.sub_id
+;
