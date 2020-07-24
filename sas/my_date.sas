@@ -28,6 +28,7 @@ run;
 
 data _null_;
 call symput("cur_month",put(INTNX('month',INTNX('day',date(),0),0),YYMMN6.));
+call symput("start_month",put(INTNX('month',INTNX('day',"&start_day"d,0),0),YYMMN6.));
 call symput("pre_month",put(INTNX('month',INTNX('day',date(),0),-1),YYMMN6.));
 run;
 

@@ -9,9 +9,9 @@ note: user_id means user_id or phone_no where phone_no CONTAINS other province n
 */
 
 /* user using device infomation  */
-/*
+
 #DWA_USR_BEH_TMN_DM_YYYYMMDD
-*/
+#DWA_USR_BEH_TMN_YYYYMM
 
 
 /* gprs with imei */

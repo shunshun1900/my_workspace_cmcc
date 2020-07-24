@@ -374,10 +374,10 @@ run;
 
 
 select count(distinct a.user_id)
-from #st_mkt_term_g5_dtl_20200629 as A
+from #st_mkt_term_g5_dtl_20200709 as A
 inner join
 (
-select distinct sub_id from #b_02027_f_20200629
+select distinct sub_id from #b_02027_f_20200709
 where BASS1_ID in 
 (
 999914211780128001,
@@ -402,6 +402,237 @@ where BASS1_ID in
 999912121810120001,
 999912121810060001
 )
-and EXPIRE_DATE>20200701) as B
+and EXPIRE_DATE>20200801) as B
 on a.user_id=b.sub_id
 ;
+
+-- 1july2020
+
+select count(distinct user_id) from #DWD_EVT_5G_GPRS_USR_202005
+--428577
+select count(distinct sub_id) from #ST_INDEX_USER_5G_FLOW_DM 
+where stat_date>=TO_DATE('2020-05-01','yyyy-mm-dd') and stat_date>=TO_DATE('2020-05-31','yyyy-mm-dd')
+--535117
+
+select count(distinct a.user_id)
+from (
+select distinct user_id from #DWD_EVT_5G_GPRS_USR_202005) as A
+inner join(
+select distinct sub_id as user_id from #ST_INDEX_USER_5G_FLOW_DM 
+where stat_date>=TO_DATE('2020-05-01','yyyy-mm-dd') and stat_date<=TO_DATE('2020-05-31','yyyy-mm-dd')) as B
+on a.user_id=b.user_id
+--376415
+
+select roam_type, count(distinct)
+from (
+select distinct user_id, roam_type, onoffline_type from #DWD_EVT_5G_GPRS_USR_202005) as A
+left join(
+select distinct sub_id as user_id from #ST_INDEX_USER_5G_FLOW_DM 
+where stat_date>=TO_DATE('2020-05-01','yyyy-mm-dd') and stat_date>=TO_DATE('2020-05-31','yyyy-mm-dd')) as B
+on a.user_id=b.user_id
+where b.user_id is null
+
+
+proc sql;
+create table a as 
+select a.*,
+case when b.user_id is null then 0 else 1 end as net_flag
+from dw61.DWD_EVT_5G_GPRS_USR_202005 A
+left join net_user B 
+on a.user_id=b.user_id
+;
+quit;
+
+proc sort data =a nodupkey; by user_id;
+run;
+
+proc freq data =a(where=( net_flag=0));
+table roam_type onoffline_type;
+run;
+
+proc sql;
+create table kb_day as
+select a.phone_no, a.user_id, a.imei,
+	case when c.user_id is null then 0 else 1 end as jf_flag,
+	case when d.user_id is null then 0 else 1 end as net_flag
+from user A
+left join a C on a.user_id=c.user_id
+left join net_user D on a.user_id=d.user_id;
+quit;
+
+proc freq data =kb_day;
+table jf_flag net_flag;
+run;
+
+-- 2july2020
+
+proc sql;
+create table net_user as
+select  sub_id as user_id, sum(gprs_5g_flow) as gprs_5g_flow from dw61.ST_INDEX_USER_5G_FLOW_DM 
+where substr(stat_date,1,10)>="2020-05-01" and substr(stat_date,1,10)<="2020-05-31"
+group by sub_id
+; 
+quit;
+
+proc sql;
+create table a as 
+select a.*,
+case when b.user_id is null then 0 else 1 end as net_flag
+from net_user A
+left join dw61.DWD_EVT_5G_GPRS_USR_202005 B 
+on a.user_id=b.user_id
+;
+quit;
+
+proc sort data =a nodupkey; by user_id;
+run;
+
+data a;
+set a;
+gprs_5g_flow=gprs_5g_flow/1024/1024;
+run;
+
+proc freq data =a(where=( net_flag=0));
+table gprs_5g_flow;
+format gprs_5g_flow dou_fmt.
+;
+run;
+
+proc sql;
+create table t1 as
+select a.*, b.OA_FLAG,b.last_imei
+from
+a  left join
+share_yy.kb_202005 B on a.user_id=b.user_id;
+quit;
+
+data xyrj;
+set lhy.xyrj lhy.xyrj2 lhy.xyrj_result;
+run;
+
+proc sort data = xyrj nodupkey; by phone_no; run;
+
+proc sql;
+create table t2 AS
+select a.*, b.name, b.email, b.f6, b.f7
+from t2 A left join xyrj B on a.phone_no=b.phone_no
+where a.OA_FLAG=1;
+quit;
+
+proc sql;
+create table t3 AS 
+select a.*,b.pp, b.xh, b.xh_sale
+from t2 A left join share_yy.imei_5g_202006 B
+on substr(a.imei,1,8)=b.imei8;
+quit;
+
+proc sql;
+create table t1 as
+select a.*,
+case when b.user_id is null then 0 else 1 end as tmn_flag
+from
+t1 A left join
+shiyang.g5_user B on a.user_id=b.user_id
+;
+quit;
+
+proc freq data = t1;
+table tmn_flag;
+run;
+
+proc freq data = t1(where=(net_flag=0));
+table tmn_flag;
+run;
+
+
+proc sql;
+create table out AS
+select a.*, 
+case when b.billid is null then 0 else 1 end as sms_flag,
+case when b.phone_no is null then 0 else 1 end as xc_flag
+from shiyang. A
+left join 
+on a.phone_no=b.billid
+left join ，
+on a.phone_no=b.phone_no
+;
+quit;
+
+
+data _null_;
+call symput("stat_day",put(INTNX('day',"09jul2020"d,0),date9.));
+run;
+
+proc sql;
+create table plan_&stat_dt as
+select * from shiyang.fake_order_&stat_dt
+where eff_date<="&stat_day"d and exp_date<>eff_date
+;
+quit;
+
+proc sql;
+create table g5_user as
+select distinct phone_no,user_id,imei
+from dw61.ST_MKT_TERM_G5_DTL_&stat_dt;
+quit;
+
+proc sql;
+create table a2 as
+select a.*,
+b.area_name
+from plan_&stat_dt a
+left join dw61.ST_MKT_YWWG_SDH_20200709 b on a.user_id=b.user_id;
+quit;
+
+proc sort data=a2 nodupkey ;by user_id phone_no;
+RUN ;
+
+proc sql;
+create table tmp as
+select a.*,b.cnt from 
+shiyang.dim_xz_area A left join(
+select area_name, count(distinct user_id) as cnt from a2 group by area_name) B
+on a.area_name=b.area_name
+order by a.id;
+quit; 
+
+proc sql;
+create table g5_user_1 as 
+select a.*
+case when b.user_id is null then 0 else 1 end as plan_flag
+from g5_user a 
+left join plan_&stat_dt B 
+on a.user_id=b.user_id
+;
+quit;
+
+proc sql;
+create table a3 as
+select a.*,
+b.area_name
+from g5_user_1 a
+left join dw61.ST_MKT_YWWG_SDH_20200709 b on a.user_id=b.user_id;
+quit;
+
+proc sort data=a3 nodupkey ;by user_id phone_no;
+RUN ;
+
+proc sql;
+create table tmp1 as
+select a.*,
+b.cnt from 
+shiyang.dim_xz_area A left join(
+select area_name, count(distinct user_id) as cnt from a3 group by area_name) B
+on a.area_name=b.area_name
+order by a.id;
+quit; 
+
+proc sql;
+create table tmp2 as
+select a.*,
+b.cnt from 
+shiyang.dim_xz_area A left join(
+select area_name, count(distinct user_id) as cnt from a3 where plan_flag=1 group by area_name) B
+on a.area_name=b.area_name
+order by a.id;
+quit; 

@@ -12,6 +12,9 @@ select distinct sub_id as user_id from dw61.ST_INDEX_USER_5G_FLOW_DM
 where substr(stat_date,1,10)>="&cur_month_first_date" and substr(stat_date,1,10)<="&pre_date"; 
 quit;
 
+select count(distinct sub_id) from #ST_INDEX_USER_5G_FLOW_DM 
+where stat_date>=TO_DATE('2020-05-01','yyyy-mm-dd') and stat_date>=TO_DATE('2020-05-31','yyyy-mm-dd')
+
 -- 5g plan user; g5_plan_user
 data shiyang.g5_plan_user;
 set dw61.st_mkt_ord_5g_usr_dtl_&pre_dt;

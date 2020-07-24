@@ -149,3 +149,67 @@ data kb1;
 set kb1;
 if missing(flag) then flag='未换套餐';
 run;
+
+
+-- using original table
+/* 新增机套匹配的arpu提升，如5月机套用户，4月非5G套餐用户，5月较4月的arpu提升  */
+
+%let stat_month=202006;
+
+proc sql;
+create table cur_user as
+select b.*
+from shiyang.ST_MKT_TERM_G5_DTL_20200630 A
+inner join shiyang.st_mkt_ord_5g_usr_dtl_20200630 B
+on a.user_id=b.user_id
+where b.bass_user_state_id in (100, 111) and b.join_date>="01May2020"d;
+quit;
+
+data cur_user;
+set cur_user;
+FORMAT gprs_eff_date date9.;
+gprs_eff_date=datepart(gprs_eff_time);
+if eff_date>="01jul2020"d then delete;
+if gprs_eff_date>="01jul2020"d then delete;
+run;
+
+data pre_user;
+set shiyang.st_mkt_ord_5g_usr_dtl_20200531;
+FORMAT gprs_eff_date date9.;
+gprs_eff_date=datepart(gprs_eff_time);
+if bass_user_state_id=111 or bass_user_state_id=100;
+if eff_date>="01jun2020"d then delete;
+if gprs_eff_date>="01jun2020"d then delete;
+run;
+
+proc sort data =cur_user nodupkey ; by user_id; run;
+proc sort data =pre_user nodupkey ; by user_id; run;
+
+proc sql;
+create table kb1 as
+select  a.*,
+case when d.offer_id is null then 0 else  1 end as plan_flag
+from cur_user A
+left join pre_user B
+on a.user_id = b.user_id
+;
+quit;
+
+proc sql;
+create table kb1 as
+select  a.*,
+b.bfr_alct_total_fee as cur_arpu,
+c.bfr_alct_total_fee as pre_arpu
+from kb1 A
+left join dw61.DWA_USR_BEH_ALL_&stat_month B
+on a.user_id = b.user_id
+left join dw61.DWA_USR_BEH_ALL_202005 c
+on a.user_id = c.user_id
+;
+quit;
+
+proc sort data = kb1 nodupkey; by user_id ; run;
+
+proc means data=kb1(where=(plan_flag=0));
+var cur_arpu pre_arpu;
+run;
