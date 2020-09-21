@@ -5,6 +5,9 @@ select distinct phone_no,user_id,imei
 from dw61.ST_MKT_TERM_G5_DTL_&pre_dt;
 quit;
 
+/* since 27Aug2020 */
+#ST_MKT_LE_5G_TAC_YYYYMMDD
+
 -- 5g net user; g5_ net_user
 proc sql;
 create table shiyang.g5_net_user as

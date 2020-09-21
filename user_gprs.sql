@@ -43,6 +43,7 @@ cellID
 */
 
 /* gprs_miss_flow history data in Hadoop  */
+#default.gprs_dou
 | user_id                  | varchar(20)           |                       |
 | sum_flow                 | double                |                       |
 | sum_flow_4g              | double                |                       |

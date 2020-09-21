@@ -1,4 +1,4 @@
-/*  sas macro   */
+/*  sas macro  syn */
 %MACRO printit;
 PROC PRINT DATA = models NOOBS;
  TITLE 'Current Models';
@@ -14,6 +14,27 @@ PROC SORT DATA = models;
 %MACRO macro-name (parameter-1=, parameter-2=, . . . parameter-n=);
  macro-text
 %MEND macro-name;
+
+/* auto delete the past tables , but reserve the first and last days of a month  */
+%macro auto_delete;
+%local cur_dt_b7 first_dt  last_dt;
+
+%let cur_dt_b7 = %sysfunc(INTNX(day,"&sysdate9."d,-7),YYMMDDN8.);
+%let first_dt = %sysfunc(INTNX(month,"&sysdate9."d,0,b),YYMMDDN8.);
+%let last_dt = %sysfunc(INTNX(month,"&sysdate9."d,-1,e),YYMMDDN8.);
+
+ %if  &cur_dt_b7. = &first_dt. or &cur_dt_b7. = &last_dt.
+ %then %return;
+%else %do;
+
+proc sql;
+
+drop table shiyang.g5_order_&cur_dt_b7;
+
+quit;
+
+%end;
+%mend;
 
 /* conditional logic if else */
 %IF condition %THEN action;
@@ -75,3 +96,55 @@ quit ;
 %mend kb;
 
 %kb;
+
+/*  sas task templete schedule   */
+%macro tmp;
+/*  date  */
+%local  pre_dt first_dt last_dt cur_month pre_month;
+
+%let pre_dt = %sysfunc(INTNX(day,%sysfunc(date()),-1),YYMMDDN8.);
+%let first_dt = %sysfunc(INTNX(month,%sysfunc(date()),0,b),YYMMDDN8.);
+%let last_dt = %sysfunc(INTNX(month,%sysfunc(date()),-1,e),YYMMDDN8.);
+
+%let cur_month = %sysfunc(INTNX(month,%sysfunc(date()),0),YYMMN6.);
+%let pre_month = %sysfunc(INTNX(month,%sysfunc(date()),-1),YYMMN6.);
+
+%put &cur_month. &pre_month. &pre_dt.  &first_dt. &last_dt;
+
+/*
+*****************SQL start******************************
+*/
+
+
+/*
+*****************SQL end******************************
+*/
+%mend;
+/*  sas task templete temp   */
+%macro tmp;
+/*  date  */
+%local  pre_dt first_dt last_dt cur_month pre_month;
+
+%let day = %sysfunc(INTNX(day,""d,0),date9.);
+%let dt = %sysfunc(INTNX(day,"&day"d,0),YYMMDDN8.);
+%let month = %sysfunc(INTNX(month,"&day"d,0),YYMMN6.);
+%let pre_month = %sysfunc(INTNX(month,"&day"d,-1),YYMMN6.);
+
+%let pre_dt = %sysfunc(INTNX(day,%sysfunc(date()),-1),YYMMDDN8.);
+%let first_dt = %sysfunc(INTNX(month,%sysfunc(date()),0,b),YYMMDDN8.);
+%let last_dt = %sysfunc(INTNX(month,%sysfunc(date()),-1,e),YYMMDDN8.);
+
+%let cur_month = %sysfunc(INTNX(month,%sysfunc(date()),0),YYMMN6.);
+%let pre_month = %sysfunc(INTNX(month,%sysfunc(date()),-1),YYMMN6.);
+
+%put &cur_month. &pre_month. &pre_dt.  &first_dt. &last_dt;
+
+/*
+*****************SQL start******************************
+*/
+
+
+/*
+*****************SQL end******************************
+*/
+%mend;

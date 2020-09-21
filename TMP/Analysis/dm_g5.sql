@@ -163,3 +163,27 @@ select a.*,
 from shiyang.tmp_dm_kb_apri A 
 left join share_yy.kb_202006 kb on A.user_id = kb.user_id;
 quit;
+
+
+-- to yaxin
+
+create table out as 
+select a.user_id,
+case when b.imei is null then 0 else 1 end as may_flag,
+case when c.imei is null then 0 else 1 end as apr_flag,
+case when d.imei is null then 0 else 1 end as mar_flag
+from shiyang.tmp_dm_kb A
+left join
+(select distinct imei from shiyang.dm_imei_202005 where dm_flag=3) B on a.imei=b.imei
+left join
+(select distinct imei from shiyang.dm_imei_202004 where dm_flag=3) C on a.imei=c.imei
+left join
+(select distinct imei from shiyang.dm_imei_202003 where dm_flag=3) D on a.imei=d.imei
+where a.dm_flag=3
+;
+
+proc freq data=out;
+table may_flag apr_flag mar_flag;
+run;
+
+

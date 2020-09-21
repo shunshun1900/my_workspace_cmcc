@@ -1,54 +1,78 @@
-/**********计算每个小区周围最近的本属地渠道**********/
-/*  wgs 经纬度   */
-data yyt_station;
-set shiyang.qudao_info;
-lng_yyt=lon;
-lat_yyt=lat;
-yyt_name=store_name;
-run;
+%_eg_conditional_dropds();
 
-data xiaoqu_near_yyt;
-length yyt_near $38.;
-length yyt_id $8. ;
-set xiaoqu_list_&xiaoqu_day(rename=(dept_name=dept_xiaoqu));
-pi=constant('pi');
-dist_min=1000000;
-yyt_near='无对应渠道';
-yyt_id='00000000';
-do i=1 to total_obs;
-   set yyt_station(rename=(dept_name=dept_yyt)) nobs=total_obs point=i;
-   if dept_xiaoqu = dept_yyt then do;
-      C_ab=sin(90-cent_lat)*sin(90-lat_yyt)*cos(cent_lng-lng_yyt)+cos(90-cent_lat)*cos(90-lat_yyt);
-	  if C_ab>=1 then C_ab=1;
-	  if C_ab<=-1 then C_ab=-1;
-      dist_ab=arcos(C_ab)*6371004*pi/180;
-      if dist_ab <= dist_min then do;
-         dist_min=dist_ab;
-		   yyt_near=yyt_name;
-         yyt_id=store_id;
+%macro task_basic_data();
 
-	  end;
-   end;
-end;
-keep COMMUNITY_ID yyt_id yyt_near dist_min ;
-run;
+%local month;
+%let month=202006;
 
-
-/*  */
-
-/**********数据合并**********/
-
+/* --------------------------- 
+basic users from kb
+ ---------------------    */
 proc sql;
-  create table xiaoqu_user as
-	select a.COMMUNITY_ID, c.lacci_h, c.msisdn as phone_no, a.distance, b.yyt_id,b.yyt_near,b.dist_min
-	from join_table_d a
-    inner join xiaoqu_near_yyt b
-	on a.COMMUNITY_ID=b.COMMUNITY_ID
-	inner join (
-      select b.* from share_yy.work_home_&wh_month. b
-	  inner join share_yy.kb_&wh_month. c 
-      on b.msisdn=c.phone_no 
-      where c.lvl1_plan_id in (11010,11020,11030)
-     ) c
-	on a.lng_h=c.lng_h_wgs and a.lat_h=c.lat_h_wgs;
+create table basic_dataset as
+select phone_no,user_id,last_imei,most_imei,
+
+bfr_alct_total_fee as arpu,
+gprs_miss_flow as dou,
+bill_dur as mou,
+gprs_fee,
+MAIN_TOTAL,
+KXB_TOTAL_AMOUNT,
+
+plan_fee,
+credit_level_id,
+age,
+GENDER_ID,
+lvl1_plan_id
+
+from share_yy.kb_&month.
+where
+USER_STATE_ID in (100)
+and lvl1_plan_id in (11010,11020,11030)
+and  m2m_flag^=1 
+and data_crd_flag^=1 
+and length(phone_no)=11
+and online_id>=24
+;
 quit;
+
+/*
+tmn used period
+bgq.IMEI_KU_LAST0630
+bgq.IMEI_KU_FIRST
+*/
+PROC SQL;
+   CREATE TABLE WORK.QUERY_FOR_IMEI_KU_FIRST AS 
+   SELECT t1.USER_ID, 
+          t1.imei, 
+          t1.dt LABEL="第一次使用时间" AS start_dt, 
+          t2.dt LABEL="最后一次使用时间" AS end_dt
+      FROM BGQ.IMEI_KU_FIRST t1, BGQ.IMEI_KU_LAST0630 t2
+      WHERE (t1.USER_ID = t2.USER_ID AND t1.imei = t2.imei);
+QUIT;
+
+data imei_data;
+set QUERY_FOR_IMEI_KU_FIRST;
+use_day=intck(day,input(start_dt,YYMMDDN8.),input(end_dt,YYMMDDN8.));
+use_month=intck(month,input(start_dt,YYMMDDN8.),input(end_dt,YYMMDDN8.));
+tac=substr(imei,1,8);
+STOP;
+run;
+
+
+
+
+%mend task_basic_data;
+
+%macro task_join();
+
+%mend task_join;
+
+%macro main();
+
+%mend main;
+
+%main
+run; quit;
+
+%_eg_conditional_dropds();

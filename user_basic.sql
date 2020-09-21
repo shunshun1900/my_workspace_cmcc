@@ -50,3 +50,31 @@ where user_id is not null;
 
 -- comm user day
 #ST_MKT_YWWG_COMM_CM_D_YYYYMMDD
+
+-- a single person has more than 2 cards
+fengtao.id_phone_2up_yyyymm
+
+-- group user
+select distinct a.*, b.cust_name, c.GRP_AREA_NAME, d.GRP_DIST_NAME ,
+case when c.grp_area_name='集团客户部' and d.grp_dist_name^='合作管理部' then d.grp_dist_name
+when c.grp_area_name in ('','代理','集客行业','集客重要','其他') or (c.grp_area_name='集团客户部' and d.grp_dist_name='合作管理部') 
+then '集团客户部-其他' else c.grp_area_name end as grp_area_name2  from
+(
+select distinct cust_id as group_id, sub_id as user_id, cust_service_level
+from #BASS1_GROUP_MEM_20200911 where flag='1'
+) a
+left join #DWD_PRTY_GRP_INFO_20200911 b on a.group_id=b.group_id
+left join #DIM_GRP_REGION_DTL c on b.M_GRP_AREA_ID=c.GRP_AREA_ID and c.end_date>'2020-09-11'
+left join #DIM_GRP_REGION_DTL d on b.M_GRP_DIST_ID=d.GRP_DIST_ID and d.end_date>'2020-09-11'
+
+-- xc user
+select distinct a.*, b.cust_name, c.GRP_AREA_NAME, d.GRP_DIST_NAME ,
+case when c.grp_area_name='集团客户部' and d.grp_dist_name^='合作管理部' then d.grp_dist_name
+when c.grp_area_name in ('','代理','集客行业','集客重要','其他') or (c.grp_area_name='集团客户部' and d.grp_dist_name='合作管理部') 
+then '集团客户部-其他' else c.grp_area_name end as grp_area_name2  from
+(
+select distinct user_id, group_id from #ST_MKT_XZ_USER_XC_20200911
+) a
+left join #DWD_PRTY_GRP_INFO_20200911 b on a.group_id=b.group_id
+left join #DIM_GRP_REGION_DTL c on b.M_GRP_AREA_ID=c.GRP_AREA_ID and c.end_date>'2020-09-11'
+left join #DIM_GRP_REGION_DTL d on b.M_GRP_DIST_ID=d.GRP_DIST_ID and d.end_date>'2020-09-11'

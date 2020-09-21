@@ -22,3 +22,9 @@ output out=change_month5
         mean=month_mean
         /ways level;
 run;
+
+/* create index */
+proc sql;
+create index user_id	on
+shiyang.user_base(user_id);
+quit;
