@@ -1,54 +1,74 @@
-proc sql outobs=10;
-create table r as
-select * from dw61.st_mkt_bc_key_person_202003;
-quit;
-proc sql ;
-create table sc_yw as 
-select user_id,phone_no ,group_no,small_circle_bs,area_name,GROUP_NUM_YIWANG from dw61.st_mkt_bc_key_person_202003 where 
-GROUP_NUM_YIWANG >0;
-quit;
-proc sort data=sc_yw;
-by user_id phone_no;
-run;
-proc sort data=sc_yw out=ys;
-by user_id phone_no;
-run;
-proc sort data=ys nodupkey;
-by user_id phone_no;
-run;
-proc sql ;
-create table sc_yw_tc as 
-select * from ys where user_id not in (select user_id from share_yy.yw_bc_highvalue_20200615);
-quit;
-/*proc sql;*/
-/*create table sc_yw_tc_qz as*/
-/*select a.* ,b.crowd_id from sc_yw_tc a left join (select user_id ,state as is_crowd,crowd_id from dw61.DWD_SVC_OFF_CROWD_INST_202005 where exp_date<='16jun2020'd) b*/
-/*on a.user_id=b.user_id;*/
-/*quit;*/
-/*proc sql ;*/
-/*create table sc_yw_tc_qz_kd as*/
-/*select a.* ,b.LAN_USER_ID from sc_yw_tc_qz a left join (select user_id ,phone_no,LAN_USER_ID from dw61.DWA_USR_EVT_LAN_INFO_202004 where (EXP_DATE<='16jun2020'd )or (CE_EXP_DATE<='16jun2020'd)) b*/
-/*on a.user_id=b.user_id;*/
-/*quit;*/
 proc sql;
-create table sc_yw_tc_f as
-select a.* ,b.is_main_bill from sc_yw_tc a left join (select distinct user_id,is_main_bill,EXT3 from DW61.DWD_SVC_FA_NT_ORD_INS_202005
-where EXPIRE_DATE>EFFECTIVE_DATE AND datepart(EXPIRE_DATE)>'16jun2020'd and 
-      EXT3 ne '') b on a.user_id=b.user_id;
+create table temp as 
+select 
+user_Id,
+phone_no,
+plan_fee_next,
+arpu,
+dou,
+mou,
+main_total,
+main_bhd,
+age
+from share_yy.GPRS_UPDATE_STRATEGY_202009
+where
+(
+huchi_5gthb_flag=0 and 
+(
+IS_5GTH_30cut20_TAG=1
+or IS_5GTH_30cut10_TAG=1
+or IS_5GTH_50cut20_TAG=1
+or IS_5GTH_50cut10_TAG=1
+)
+and plan_fee_next>=20 and plan_fee_next<=70
+);
+
+proc sql;
+create table temp_kb as 
+select a.*,
+case when b.user_id is null then 0 else 1 end as is_thb
+from temp_kb A
+left join
+(select distinct user_id from shiyang.G5_OFFER_KB_20201018 where  offer_type=1 or offer_type=3)
+ B on a.user_id=b.user_id;
 quit;
-proc sql ;
-create table sc_yw_tc_fq as
-select a.* ,b.MAIN_PHONE_NO_FLAG from sc_yw_tc_f a left join (SELECT distinct user_id, MAIN_PHONE_NO_FLAG,CROWD_ID
-FROM DW61.DWD_SVC_OFF_CRD_INS_20200615 
-WHERE OFFER_ID not IN (380000029188,350200000022,350200000004) 
-and EXP_DATE>EFF_DATE AND EXP_DATE>'16jun2020'd and CROWD_ID ne '' ) b on a.user_id=b.user_id;
+
+proc sql;
+create table temp_kb as 
+select a.*,
+case when b.user_id is null then 0 else 1 end as is_g5_user
+from temp_kb A
+left join
+shiyang.G5_TMN_KB_20201018
+ B on a.user_id=b.user_id;
 quit;
-data sc_yw_tc_fq_1;
-set sc_yw_tc_fq;
-if is_main_bill='' and MAIN_PHONE_NO_FLAG=. then is_crowd=0;
-else is_crowd=1;
-run;
-proc sql ;
-create table sc_yw_tc_fq_lan as
-select a.* ,b.lan_user_id from sc_yw_tc_fq_1 a left join (select distinct user_id , lan_user_id  from
-dw61.ST_MKT_14
+
+proc sql;
+create table temp_kb as 
+select a.*,
+b.days,
+b.lac_count
+from temp_kb A
+left join
+share_yy.work_home_202009
+ B on a.phone_no=b.msisdn;
+quit;
+
+proc sql;
+create table temp_kb as 
+select a.*,
+case when b.user_id is null then 0 else 1 end as is_hj_mqs,
+case when b.user_id is null then 0 else 1 end as is_hj_gjxd
+from temp_kb A
+left join
+bgq.HUANJI_GOAL_335WAN B on a.user_id=b.user_id
+ left join shiyang.ODS_GJXD_5GTERMINAL_20200830 c 
+ on a.user_id=c.user_id
+ ;
+quit;
+
+
+proc sql;
+select count(*) from temp_kb
+where dou>=1024*1024*1024
+quit;
