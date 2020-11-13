@@ -43,3 +43,14 @@ from dw61.dwd_svc_off_TEM_BIDINS_&i a,lhy.xinyong_gouji_id as b
 where a.offer_id=b.offer_id 
 ;
 quit;
+
+proc sql;
+create table plan_1
+select a.*,
+case when b.user_id is null then 0 else 1 end as is_recom_thb,
+case when c.user_id is null then 0 else 1 end as is_recom_tmn
+from plan_1 A
+left join shiyang.gjxd_g5_thb B on a.user_id=b.user_id
+left join shiyang.gjxd_g5_tmn C on a.user_id=c.user_id
+;
+quit;

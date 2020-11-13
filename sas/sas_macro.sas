@@ -79,7 +79,7 @@ PROC PRINT DATA = orders NOOBS;
  TITLE "Customer &biggest Had the Single Largest Order";
 RUN;
 
-/* loop */
+/* loop by day */
 %macro kb;
 %do i=1 %to &span;
 
@@ -95,7 +95,28 @@ quit ;
 %end;
 %mend kb;
 
-%kb;
+/* loop by month */
+%macro kb;
+%let span=5;
+%let start_day = 01May2020;
+%do i=1 %to &span.;
+
+data _null_;
+call symput("month",put(intnx('month',"&start_day"d,&i),yymmn6.));
+run;
+
+%put &month.;
+
+/*
+*****************SQL start******************************
+*/
+/*edit here*/
+/*
+*****************SQL end******************************
+*/
+
+%end;
+%mend kb;
 
 /*  sas task templete schedule   */
 %macro tmp;
