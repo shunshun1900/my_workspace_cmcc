@@ -21,6 +21,7 @@ subprotocol =hive2
 schema =&schema
 user =&sysuserid;
 %macro hdp_intk (out_tbl, in_tbl, schema, limit);
+
 Proc Sql noprint;
  Connect to Hadoop (&config);
  drop table hive_map1;
@@ -30,6 +31,7 @@ Proc Sql noprint;
  (describe &&schema..&&in_tbl);
  disconnect from hadoop;
 quit;
+
 proc sql;
  create table hive_maps (drop=comment) as
  select *,
@@ -45,13 +47,14 @@ proc sql;
  end as sas_f,
  monotonic () as nvar
  from hive_map1);
+
 select max(nvar) into :num_vars from hive_maps;
 %put Number of variables/fields: &num_vars in hive table: &&schema..&&in_tbl;
 select distinct (sas_sel) into: sas_vars SEPARATED by"," from
 hive_maps;
 quit;
 %symdel;
-8
+
 Proc Sql noprint;
  Connect to Hadoop (&config);
 /*---drop existing out table---*/
@@ -73,4 +76,4 @@ quit;
 %mend;
 *---passing Macro variable output, input SAS datasets, schema and limit
 observations---*;
-%hdp_intk (OutSASData,InHiveTble,hdpSchema,100
+%hdp_intk (OutSASData,InHiveTble,hdpSchema,100）
