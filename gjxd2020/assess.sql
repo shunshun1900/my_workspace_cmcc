@@ -58,3 +58,76 @@ inner join
 where statis_date='202006') as B on a.phon_num=b.msisdn
 ;
 | 755137  |
+
+
+/* update to PAAS */
+--dir
+/user/gjxdshuser/2020_10200/20201202/
+hadoop fs -mkdir /user/gjxdshuser/2020_10200/20201202
+
+hadoop fs -ls /user/gjxdshuser/ | grep PSH
+hadoop fs -ls /user/gjxdshuser//2020_10200/20201202
+
+hadoop fs -mv /user/gjxdshuser/1_202008_psh_01.dat /user/gjxdshuser/2020_10200/20201202/1_202008_PSH_01.dat
+hadoop fs -mv /user/gjxdshuser/1_202008_psh_02.dat /user/gjxdshuser/2020_10200/20201202/1_202008_PSH_02.dat
+hadoop fs -mv /user/gjxdshuser/3_202006_psh_01.dat /user/gjxdshuser/2020_10200/20201202/3_202006_PSH_01.dat
+hadoop fs -mv /user/gjxdshuser/3_202006_psh_02.dat /user/gjxdshuser/2020_10200/20201202/3_202006_PSH_02.dat
+hadoop fs -cp /user/gjxdshuser/12_202008_PSH_01.dat /user/gjxdshuser/2020_10200/20201202/
+hadoop fs -cp /user/gjxdshuser/12_202007_PSH_02.dat /user/gjxdshuser/2020_10200/20201202/
+hadoop fs -cp /user/gjxdshuser/13_202011_PSH_01.dat /user/gjxdshuser/2020_10200/20201202/
+hadoop fs -cp /user/gjxdshuser/13_202011_PSH_02.dat /user/gjxdshuser/2020_10200/20201202/
+
+hadoop fs -mv /user/gjxdshuser/2020_10200/20201202/13_202011_PSH_01.dat /user/gjxdshuser/2020_10200/20201202/13_202008_PSH_01.dat
+hadoop fs -mv /user/gjxdshuser/2020_10200/20201202/13_202011_PSH_02.dat /user/gjxdshuser/2020_10200/20201202/13_202005_PSH_02.dat
+
+hadoop fs -rm /user/gjxdshuser/2020_10200/20201202/3_202006_psh_01.dat
+hadoop fs -rm /user/gjxdshuser/2020_10200/20201202/3_202006_psh_02.dat
+
+hadoop fs -cat /user/gjxdshuser/2020_10200/20201202/1_202008_PSH_02.dat | head -10
+hadoop fs -cat /user/gjxdshuser/2020_10200/20201202/1_202008_PSH_01.dat | head -10
+hadoop fs -cat /user/gjxdshuser/2020_10200/20201202/3_202006_psh_01.dat | head -10
+hadoop fs -cat /user/gjxdshuser/2020_10200/20201202/3_202006_PSH_02.dat | head -10
+
+hadoop fs -cat /user/gjxdshuser/2020_10200/20201202/12_202008_PSH_01.dat | head -10
+hadoop fs -cat /user/gjxdshuser/2020_10200/20201202/12_202007_PSH_02.dat | head -10
+
+hadoop fs -cat /user/gjxdshuser/2020_10200/20201202/13_202011_PSH_01.dat | head -10
+
+/* modify the raw file  */
+g5_jt_test_result.csv
+g5_my_test_result.csv
+/home/mengqingshun/lhy/g5/result/g5_jt_test_result.csv
+/home/mengqingshun/lhy/g5/result/g5_my_test_result.csv
+
+hadoop fs -put /home/dmp/kb_sh_201804.csv /user/mengqs
+
+create database if not exists mqs
+location '/DOMAIN_B/DISNEY/LOCATION/APP/mengqs/mqs.db';
+
+create external table mengqs.kb_sh
+201804(msisdn varchar(11))
+row format delimited 
+fields terminated by ','
+stored as textfile
+location '/user/mengqs';
+
+load data inpath '/user/mengqs/kb_sh_201804.csv' into table mengqs.kb_sh_201804;
+
+/* using shell*/
+awk -F, 'OFS="|" {print$0}' awk_test.dat > awk_test_out.dat
+awk 'BEGIN { FS=","; OFS="|"; } { print "1",$1,$2; }' awk_test.dat > awk_test_out.dat
+
+/*2*/
+awk 'BEGIN { FS=","; OFS="|"; } { print "2","10200",$1,$2; }' g5_jt_test_result.csv > /home/mengqingshun/up_2_paas/2_202008_PSH_01.dat
+awk 'BEGIN { FS=","; OFS="|"; } { print "2","10200",$1,$3,$2,"202007"; }' g5_my_test_result.csv > /home/mengqingshun/up_2_paas/2_202007_PSH_02.dat
+
+/*4*/
+awk 'BEGIN { FS=","; OFS="|"; } { print "4","10200",$1,$2; }' upplan_jt_test_result.csv > /home/mengqingshun/up_2_paas/4_202008_PSH_01.dat
+awk 'BEGIN { FS=","; OFS="|"; } { print "4","10200",$1,$3,$2,"202006"; }' upplan_my_test_result.csv > /home/mengqingshun/up_2_paas/4_202006_PSH_02.dat
+
+
+/*up to pass*/
+hadoop fs -put /home/mengqingshun/up_2_paas/2_202008_PSH_01.dat /user/gjxdshuser/2020_10200/20201202/
+hadoop fs -put /home/mengqingshun/up_2_paas/2_202007_PSH_02.dat /user/gjxdshuser/2020_10200/20201202/
+hadoop fs -put /home/mengqingshun/up_2_paas/4_202008_PSH_01.dat /user/gjxdshuser/2020_10200/20201202/
+hadoop fs -put /home/mengqingshun/up_2_paas/4_202006_PSH_02.dat /user/gjxdshuser/2020_10200/20201202/
