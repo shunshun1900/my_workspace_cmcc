@@ -1,6 +1,7 @@
 /*  high risk chrone user  */
 select * from #st_mkt_grp_carry_out_202007 where RISK_LVL <>'低风险用户' 
 
+/*    */
 select distinct a.*, b.cust_name, c.GRP_AREA_NAME, d.GRP_DIST_NAME ,
 case when c.grp_area_name='集团客户部' and d.grp_dist_name^='合作管理部' then d.grp_dist_name
 when c.grp_area_name in ('','代理','集客行业','集客重要','其他') or (c.grp_area_name='集团客户部' and d.grp_dist_name='合作管理部') 

@@ -1,10 +1,9 @@
 # my workspace for cmcc
-# key words
-## sas date
-## db2 date
-## msc ID
+# key words for code block
 ## personal user
-## 5g
-## gprs
-## call
-## 5g model
+## group user
+## comm user
+## pay user
+## complaint user
+
+# key words for sas scripts
