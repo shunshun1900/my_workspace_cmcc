@@ -169,3 +169,28 @@ run;
 *****************SQL end******************************
 */
 %mend;
+
+/*  sas macro scripts for left join, iteration etc...     */
+
+%MACRO leftjoin(out=t1, TABLE_A=, TABLE_B=, key_a=user_id, key_b=user_id );
+
+proc sql;
+create TABLE t1 as 
+select
+a.*,
+b.plan_fee
+from &TABLE_A A 
+left join &TABLE_B B
+on a.&key_a = b.&key_b
+;
+quit;
+
+%MEND leftjoin;
+
+
+%MACRO print(table /* data set you want print within 100 obs */ );
+
+proc print data= &table(obs=100);
+run;
+
+%MEND print;

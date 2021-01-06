@@ -45,3 +45,11 @@ lvl3desc like "%5G%"
 or complain_desc like "%5G%"
 ;
 quit;
+
+/* IOP SMS sent */
+proc sql;
+create table sent as
+select distinct phone_no from dw61.DWA_TI_O_SMS_ALL_DM_202009
+where ct_ext_id=''
+;
+quit;
