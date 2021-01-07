@@ -1,9 +1,0 @@
--- arpu
-#DWA_USR_BEH_ALL_YYYYMM
-user_id
-BFR_ALCT_TOTAL_FEE
-
--- discount
-#ST_MKT_ALL_USR_ZKZR_202003
-user_id
-ZKZR_SHQ
