@@ -22,7 +22,7 @@ datetime='01JAN1960:00:01:30'dt
 
 string -> date
   '20200120' -> 20jan2020 date9.
-  date=input('20200120',yymmdd8.);
+  date=input('20200120',yymmddn8.);
   format date date9.;
 
 date -> string
